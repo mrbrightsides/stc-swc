@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from .swc_registry import get_swc_meta
+import json
+from uuid import uuid4
 
 def _norm_severity(x: str) -> str:
     if not x:
