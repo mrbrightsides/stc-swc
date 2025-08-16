@@ -10,6 +10,17 @@ from stc_swc.normalize.mapper import to_stc_schema_batch
 from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
 
+# --- bootstrap local package path ---
+from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parent
+PKG = ROOT / "stc_swc"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+if PKG.exists() and str(PKG) not in sys.path:
+    sys.path.insert(0, str(PKG))
+# ------------------------------------
+
 st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
 st.title("🛡️ STC for SWC — Converter")
 
