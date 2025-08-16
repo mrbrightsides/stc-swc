@@ -8,9 +8,13 @@ Output:
 from pathlib import Path
 import os, json, base64, requests, sys
 
-API_DIRS = "https://api.github.com/repos/SmartContractSecurity/SWC-registry/contents/entries?ref=main"
-API_FILE = "https://api.github.com/repos/SmartContractSecurity/SWC-registry/contents/entries/{name}/{name}.json?ref=main"
-OUT_PATH = Path("stc_swc/normalize/swc_registry_full.json")
+OWNER = "SmartContractSecurity"
+REPO  = "SWC-registry"
+
+API_REPO   = f"https://api.github.com/repos/{OWNER}/{REPO}"
+API_DIRS   = f"{API_REPO}/contents/entries"                    # + ?ref={branch}
+API_FILE   = f"{API_REPO}/contents/entries/{{name}}/{{name}}.json"  # + ?ref={branch}
+OUT_PATH   = Path("stc_swc/normalize/swc_registry_full.json")
 
 def _session():
     s = requests.Session()
@@ -21,27 +25,57 @@ def _session():
     s.headers["Accept"] = "application/vnd.github+json"
     return s
 
+def _get_default_branch(s: requests.Session) -> str:
+    r = s.get(API_REPO, timeout=30)
+    r.raise_for_status()
+    return r.json().get("default_branch", "master")
+
+def _get_json_file(s: requests.Session, url_base: str, branch: str) -> dict | None:
+    """GET contents API for a file and decode base64 content. Try branch; return dict or None."""
+    try:
+        r = s.get(f"{url_base}?ref={branch}", timeout=30)
+        r.raise_for_status()
+        js = r.json()
+        if isinstance(js, dict) and js.get("content"):
+            return json.loads(base64.b64decode(js["content"]).decode("utf-8"))
+        # When API returns direct JSON (rare), pass through:
+        if isinstance(js, dict) and all(k in js for k in ("Title", "SWC-ID")):
+            return js
+    except Exception as e:
+        print(f"[warn] file fetch failed ({branch}): {e}", file=sys.stderr)
+    return None
+
 def fetch_all():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     s = _session()
 
-    # list directories under entries/
-    r = s.get(API_DIRS, timeout=30)
-    r.raise_for_status()
-    items = r.json()
-    dirs = [it["name"] for it in items if it.get("type") == "dir" and it.get("name","").startswith("SWC-")]
+    # 1) determine default branch
+    default_branch = _get_default_branch(s)
+    alt_branch = "main" if default_branch == "master" else "master"
+    print(f"[info] default branch: {default_branch}", file=sys.stderr)
+
+    # 2) list directories under entries/
+    def list_dirs(branch: str):
+        r = s.get(f"{API_DIRS}?ref={branch}", timeout=30)
+        r.raise_for_status()
+        items = r.json()
+        return [it["name"] for it in items if it.get("type")=="dir" and it.get("name","").startswith("SWC-")]
+
+    try:
+        dirs = list_dirs(default_branch)
+    except Exception as e:
+        print(f"[warn] list dirs failed on {default_branch}: {e}", file=sys.stderr)
+        dirs = list_dirs(alt_branch)
+
     print(f"[info] found {len(dirs)} SWC dirs", file=sys.stderr)
 
+    # 3) fetch each SWC-xxx.json (try default branch then fallback)
     entries = {}
     for name in dirs:
-        url = API_FILE.format(name=name)  # entries/SWC-107/SWC-107.json
-        try:
-            fr = s.get(url, timeout=30)
-            fr.raise_for_status()
-            content = fr.json().get("content", "")
-            data = json.loads(base64.b64decode(content).decode("utf-8"))
-        except Exception as e:
-            print(f"[warn] skip {name}: {e}", file=sys.stderr)
+        url = API_FILE.format(name=name)
+        data = _get_json_file(s, url, default_branch) or _get_json_file(s, url, alt_branch)
+        if not data:
+            print(f"[warn] skip {name}: cannot fetch JSON", file=sys.stderr)
             continue
 
         key = str(data.get("SWC-ID") or name.replace("SWC-", ""))
