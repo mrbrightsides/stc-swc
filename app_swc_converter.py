@@ -7,8 +7,8 @@ import streamlit as st
 # --- bootstrap local package path (supports running from subfolders like main/) ---
 from pathlib import Path
 import sys
-HERE = Path(__file__).resolve().parent        # e.g. /.../stc-swc/main
-ROOT = HERE if (HERE / "stc_swc").exists() else HERE.parent  # naik 1 level jika perlu
+HERE = Path(__file__).resolve().parent
+ROOT = HERE if (HERE / "stc_swc").exists() else HERE.parent
 for p in {str(ROOT), str(ROOT / "stc_swc")}:
     if p not in sys.path:
         sys.path.insert(0, p)
@@ -33,7 +33,7 @@ with col[0]:
 with col[1]:
     out_dir = Path(st.text_input("Output folder", "outputs"))
 with col[2]:
-    timestamp_now = st.text_input("Timestamp (opsional, ISO)", "")
+    timestamp_now = st.text_input("Timestamp (opsional, ISO)", "", placeholder="2025-08-10T13:00:00")
 
 out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -43,6 +43,14 @@ if st.button("▶️ Konversi", use_container_width=True):
     if not report_file:
         st.error("Upload report JSON dulu ya.")
         st.stop()
+
+    # Validasi ISO format (YYYY-MM-DDTHH:MM:SS)
+    if timestamp_now:
+        try:
+            datetime.fromisoformat(timestamp_now)
+        except ValueError:
+            st.error("Format timestamp harus YYYY-MM-DDTHH:MM:SS")
+            st.stop()
 
     # Simpan sementara lalu parse
     tmp_path = out_dir / "_tmp_report.json"
@@ -63,8 +71,13 @@ if st.button("▶️ Konversi", use_container_width=True):
     write_ndjson(rows, str(ndj_path))
 
     st.success("Berhasil diexport!")
-    st.write(f"CSV → `{csv_path}`")
-    st.write(f"NDJSON → `{ndj_path}`")
+
+    # ✅ Tombol download
+    with open(csv_path, "rb") as f:
+        st.download_button("📥 Download CSV", f, file_name=csv_path.name, mime="text/csv")
+
+    with open(ndj_path, "rb") as f:
+        st.download_button("📥 Download NDJSON", f, file_name=ndj_path.name, mime="application/x-ndjson")
 
     # Preview dataframe
     if rows:
