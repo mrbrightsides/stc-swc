@@ -49,7 +49,6 @@ if st.session_state.get("converted"):
     csv_path = Path(st.session_state["csv_path"])
     ndj_path = Path(st.session_state["ndj_path"])
     rows = st.session_state["rows"]
-    st.write(pd.DataFrame(rows).head(3))
 
     with open(csv_path, "rb") as f:
         st.download_button("📥 Download CSV", f, file_name=csv_path.name, mime="text/csv", key="csv_dl")
