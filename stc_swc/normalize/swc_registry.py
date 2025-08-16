@@ -1,15 +1,26 @@
-import json
 from pathlib import Path
+import json
 
-SWC_REGISTRY = {}
+_REGISTRY = None
 
-def load_registry():
-    global SWC_REGISTRY
-    registry_path = Path(__file__).parent / "swc_registry_full.json"
-    if registry_path.exists():
-        SWC_REGISTRY = json.loads(registry_path.read_text(encoding="utf-8"))
+def _load():
+    global _REGISTRY
+    if _REGISTRY is not None:
+        return
+    # Cache yang dibuat fetcher
+    path = Path(__file__).parent / "swc_registry_full.json"
+    if path.exists():
+        _REGISTRY = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        _REGISTRY = {}  # fallback kosong
 
 def get_swc_meta(swc_id: str):
-    if not SWC_REGISTRY:
-        load_registry()
-    return SWC_REGISTRY.get(swc_id)
+    """
+    swc_id bisa '107' atau 'SWC-107'
+    return dict: {title, severity, remediation, ...} atau None
+    """
+    _load()
+    if not swc_id:
+        return None
+    key = str(swc_id).replace("SWC-", "")
+    return _REGISTRY.get(key)
