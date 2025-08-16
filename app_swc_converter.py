@@ -19,6 +19,7 @@ from stc_swc.extract.slither import parse_report as parse_slither
 from stc_swc.normalize.mapper import to_stc_schema_batch
 from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
+from stc_swc.normalize.swc_registry import get_swc_meta
 
 st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
 st.title("🛡️ STC for SWC — Converter")
@@ -146,6 +147,43 @@ if st.button("▶️ Konversi", use_container_width=True):
             if k in title_lc:
                 f["swc_id"] = v
                 break
+
+    # ------ Enrich dari registry & isi default ------
+    for f in raw_findings:
+        # metadata umum
+        f["contract"]    = f.get("contract")    or Path(report_file.name).stem.split(".")[0]
+        f["network"]     = f.get("network")     or "ethereum"
+        f["commit_hash"] = f.get("commit_hash") or commit_hash
+        f["timestamp"]   = f.get("timestamp")   or (timestamp_now or datetime.utcnow().isoformat(timespec="seconds"))
+        f["status"]      = f.get("status")      or "unresolved"
+        f["confidence"]  = f.get("confidence")  or "medium"
+    
+        # line_end fallback
+        if not f.get("line_end") and f.get("line_start"):
+            f["line_end"] = f["line_start"]
+    
+        # SWC-ID dari judul (fallback ringan)
+        if not f.get("swc_id"):
+            title_lc = (f.get("title") or "").lower()
+            for k, v in {
+                "reentrancy": "SWC-107",
+                "low-level-calls": "SWC-104",
+                "solc-version": "SWC-103",
+                "tx-origin": "SWC-115",
+                "unchecked-send": "SWC-113",
+            }.items():
+                if k in title_lc:
+                    f["swc_id"] = v
+                    break
+    
+        # Enrich dari SWC Registry
+        meta = get_swc_meta(f.get("swc_id"))
+        if meta:
+            # Jangan override kalau scanner sudah kasih value
+            f["title"]       = f.get("title")       or meta.get("title")
+            f["severity"]    = f.get("severity")    or meta.get("severity")
+            f["remediation"] = f.get("remediation") or meta.get("remediation") or ""
+
 
     # --- konversi ke schema final
     rows = to_stc_schema_batch(raw_findings, tool=tool)
