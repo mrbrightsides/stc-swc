@@ -1,46 +1,62 @@
+from __future__ import annotations
+from uuid import uuid4
+from datetime import datetime
+
 from stc_swc.normalize.swc_registry import get_swc_meta
 
+_SEV_MAP = {"critical": "critical", "high": "high", "medium": "medium", "low": "low"}
+
+def _norm_severity(s: str | None) -> str:
+    if not s:
+        return ""
+    s = str(s).strip().lower()
+    return _SEV_MAP.get(s, s)
+
 def to_stc_schema(raw: dict, tool: str, timestamp_iso: str | None = None) -> dict:
-    # ambil nilai awal
+    # ambil nilai awal dari parser
+    swc_id      = (raw.get("swc_id") or "").strip()
     title       = (raw.get("title") or "").strip()
-    severity    = (raw.get("severity") or "").strip().lower()
+    severity    = _norm_severity(raw.get("severity"))
     remediation = (raw.get("remediation") or "").strip()
 
-    # kalau ada SWC-ID, ambil meta dari registry
-    swc_id = raw.get("swc_id")
-    meta = get_swc_meta(swc_id) if swc_id else None
-    if meta:
-        if not title:
-            title = (meta.get("title") or "").strip()
-        if not severity:
-            severity = (meta.get("severity") or "").strip().lower()
-        if not remediation:
-            remediation = (meta.get("remediation") or "").strip()
+    # enrich dari registry kalau ada SWC-ID
+    if swc_id:
+        meta = get_swc_meta(swc_id) or get_swc_meta(swc_id.replace("SWC-", ""))
+        if meta:
+            if not title:
+                title = (meta.get("title") or "").strip()
+            if not severity:
+                severity = _norm_severity(meta.get("severity"))
+            if not remediation:
+                remediation = (meta.get("remediation") or "").strip()
 
-    # normalisasi severity jika perlu
-    sev_map = {"critical":"critical","high":"high","medium":"medium","low":"low"}
-    severity = sev_map.get(severity, severity or "")
-
-    # timestamp
+    # timestamp & line fallback
     ts = timestamp_iso or datetime.utcnow().isoformat(timespec="seconds")
-
-    # line_end fallback
-    line_start = raw.get("line_start") or raw.get("line")
+    line_start = raw.get("line_start") or raw.get("line") or 0
     line_end   = raw.get("line_end") or line_start
+
+    def _to_int(x):
+        try:
+            return int(x)
+        except Exception:
+            return 0
 
     return {
         "finding_id": str(uuid4()),
         "timestamp": ts,
-        "network": (raw.get("network") or "ethereum"),
-        "contract": (raw.get("contract") or ""),
-        "file":     (raw.get("file") or ""),
-        "line_start": int(line_start) if str(line_start).isdigit() else 0,
-        "line_end":   int(line_end)   if str(line_end).isdigit()   else 0,
-        "swc_id": swc_id or "",
-        "title": title,                # <- pakai variabel hasil enrich
-        "severity": severity,          # <-
-        "confidence": (raw.get("confidence") or "medium"),
-        "status": (raw.get("status") or "unresolved"),
-        "remediation": remediation,    # <-
-        "commit_hash": (raw.get("commit_hash") or "")
+        "network":   raw.get("network") or "ethereum",
+        "contract":  raw.get("contract") or "",
+        "file":      raw.get("file") or "",
+        "line_start": _to_int(line_start),
+        "line_end":   _to_int(line_end),
+        "swc_id":     swc_id,
+        "title":      title,          # <- hasil enrich
+        "severity":   severity,       # <- hasil enrich
+        "confidence": raw.get("confidence") or "medium",
+        "status":     raw.get("status") or "unresolved",
+        "remediation": remediation,   # <- hasil enrich
+        "commit_hash": raw.get("commit_hash") or "",
     }
+
+def to_stc_schema_batch(raw_list: list[dict], tool: str, timestamp_iso: str | None = None) -> list[dict]:
+    return [to_stc_schema(r, tool=tool, timestamp_iso=timestamp_iso) for r in raw_list]
