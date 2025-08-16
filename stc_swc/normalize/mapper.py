@@ -30,7 +30,7 @@ def to_stc_schema(raw: dict, tool: str, timestamp_iso: str | None = None) -> dic
         if not raw.get("severity"):
             severity = _norm_severity(meta.get("severity"))
 
-    meta = get_swc_meta(f["swc_id"])
+    meta = get_swc_meta(raw.get("swc_id"))
     if meta:
         f["title"] = meta.get("Title", f.get("title"))
         f["severity"] = meta.get("Severity", f.get("severity"))
