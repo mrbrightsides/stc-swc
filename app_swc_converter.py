@@ -152,6 +152,18 @@ if st.button("▶️ Konversi", use_container_width=True):
                 f["swc_id"] = v
                 break
 
+    CONF_NUM = {"low": 0.25, "medium": 0.50, "high": 0.75}
+
+    for f in raw_findings:
+        ...
+        val = f.get("confidence")
+        if isinstance(val, str):
+            f["confidence"] = CONF_NUM.get(val.lower(), None)
+        elif isinstance(val, (int, float)):
+            f["confidence"] = round(float(val), 2)
+        else:
+            f["confidence"] = None
+
     # ------ Enrich dari registry & isi default ------
     for f in raw_findings:
         # metadata umum
