@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-Fetch all SWC registry entries from the official GitHub repo and build a local cache.
+Fetch all SWC registry entries and build a local cache.
 
 Output:
-  stc_swc/normalize/swc_registry_full.json   # dict keyed by '107', '103', ...
+  stc_swc/normalize/swc_registry_full.json
 """
 from pathlib import Path
-import os, json, requests, sys
+import os, json, base64, requests, sys
 
-API_LIST_DIRS = "https://api.github.com/repos/SmartContractSecurity/SWC-registry/contents/entries"
-RAW_BASE = "https://raw.githubusercontent.com/SmartContractSecurity/SWC-registry/master/entries"
-
+API_DIRS = "https://api.github.com/repos/SmartContractSecurity/SWC-registry/contents/entries?ref=main"
+API_FILE = "https://api.github.com/repos/SmartContractSecurity/SWC-registry/contents/entries/{name}/{name}.json?ref=main"
 OUT_PATH = Path("stc_swc/normalize/swc_registry_full.json")
 
 def _session():
@@ -19,40 +18,33 @@ def _session():
     if tok:
         s.headers["Authorization"] = f"Bearer {tok}"
     s.headers["User-Agent"] = "stc-swc-fetcher"
+    s.headers["Accept"] = "application/vnd.github+json"
     return s
 
 def fetch_all():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     s = _session()
 
-    # 1) list entries/ -> returns directories: SWC-100, SWC-101, ...
-    r = s.get(API_LIST_DIRS, timeout=30)
+    # list directories under entries/
+    r = s.get(API_DIRS, timeout=30)
     r.raise_for_status()
     items = r.json()
+    dirs = [it["name"] for it in items if it.get("type") == "dir" and it.get("name","").startswith("SWC-")]
+    print(f"[info] found {len(dirs)} SWC dirs", file=sys.stderr)
 
     entries = {}
-    for it in items:
-        # Only process directories named SWC-xxx
-        if it.get("type") != "dir":
-            continue
-        name = it.get("name") or ""        # e.g., "SWC-107"
-        if not name.startswith("SWC-"):
-            continue
-
-        json_name = f"{name}.json"         # e.g., "SWC-107.json"
-        url = f"{RAW_BASE}/{name}/{json_name}"
-
+    for name in dirs:
+        url = API_FILE.format(name=name)  # entries/SWC-107/SWC-107.json
         try:
-            jr = s.get(url, timeout=30)
-            jr.raise_for_status()
-            data = jr.json()
+            fr = s.get(url, timeout=30)
+            fr.raise_for_status()
+            content = fr.json().get("content", "")
+            data = json.loads(base64.b64decode(content).decode("utf-8"))
         except Exception as e:
-            print(f"skip {name}: {e}", file=sys.stderr)
+            print(f"[warn] skip {name}: {e}", file=sys.stderr)
             continue
 
         key = str(data.get("SWC-ID") or name.replace("SWC-", ""))
-
-        # Normalize minimal fields we need
         entries[key] = {
             "id": data.get("SWC-ID") or key,
             "title": data.get("Title"),
