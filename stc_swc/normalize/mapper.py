@@ -33,16 +33,20 @@ def to_stc_schema(raw: dict, tool: str, timestamp_iso: str | None = None) -> dic
         ts = datetime.now(timezone.utc).isoformat()
 
     return {
+        "finding_id": str(uuid4()),
+        "timestamp": ts,
+        "network": "ethereum",
+        "contract": raw.get("contract") or "",
+        "file": raw.get("file") or "",
+        "line_start": int(raw.get("line")) if raw.get("line") not in (None, "") else 0,
+        "line_end": int(raw.get("line")) if raw.get("line") not in (None, "") else 0,
         "swc_id": swc_id or "",
         "title": title[:200],
-        "description": (description or "").replace("\n"," ").replace("\r"," ").strip(),
         "severity": severity,
-        "tool": tool,
-        "contract": raw.get("contract") or "",
-        "function": raw.get("function") or "",
-        "file": raw.get("file") or "",
-        "line": int(raw.get("line")) if raw.get("line") not in (None, "") else 0,
-        "timestamp": ts,
+        "confidence": "medium",
+        "status": "unresolved",
+        "remediation": "",
+        "commit_hash": "",
     }
 
 def to_stc_schema_batch(raw_list: list[dict], tool: str, timestamp_iso: str | None = None) -> list[dict]:
