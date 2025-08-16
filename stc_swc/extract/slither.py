@@ -41,6 +41,12 @@ def parse_report(path: str):
             "function": func,
             "file": file_path,
             "line": int(line_no) if isinstance(line_no, int) or (isinstance(line_no, str) and str(line_no).isdigit()) else None,
+            "network": "ethereum",
+            "status": "unresolved",
+            "confidence": "medium",
+            "remediation": "",
+            "commit_hash": "",
         })
+
 
     return findings
