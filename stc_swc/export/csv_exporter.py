@@ -2,7 +2,20 @@ import csv
 from pathlib import Path
 
 FIELDS = [
-    "swc_id","title","description","severity","tool","contract","function","file","line","timestamp"
+    "finding_id",
+    "timestamp",
+    "network",
+    "contract",
+    "file",
+    "line_start",
+    "line_end",
+    "swc_id",
+    "title",
+    "severity",
+    "confidence",
+    "status",
+    "remediation",
+    "commit_hash"
 ]
 
 def write_csv(rows: list[dict], path: str):
