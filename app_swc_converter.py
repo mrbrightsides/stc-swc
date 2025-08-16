@@ -4,22 +4,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 import streamlit as st
 
-from stc_swc.extract.mythril import parse_report as parse_mythril
-from stc_swc.extract.slither import parse_report as parse_slither
-from stc_swc.normalize.mapper import to_stc_schema_batch
-from stc_swc.export.csv_exporter import write_csv
-from stc_swc.export.ndjson_exporter import write_ndjson
-
-# --- bootstrap local package path ---
+# --- bootstrap local package path (supports running from subfolders like main/) ---
 from pathlib import Path
 import sys
-ROOT = Path(__file__).resolve().parent
-PKG = ROOT / "stc_swc"
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-if PKG.exists() and str(PKG) not in sys.path:
-    sys.path.insert(0, str(PKG))
-# ------------------------------------
+HERE = Path(__file__).resolve().parent        # e.g. /.../stc-swc/main
+ROOT = HERE if (HERE / "stc_swc").exists() else HERE.parent  # naik 1 level jika perlu
+for p in {str(ROOT), str(ROOT / "stc_swc")}:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+# -------------------------------------------------------------------------------
+
+from stc_swc.extract.mythril import parse_report as parse_mythril
+from stc_swc.extract.slither import parse_report as parse_slither
+from stc_swc.normalize.mapper import to_stc_swc_schema_batch as to_stc_schema_batch  # atau nama asli kamu
+from stc_swc.export.csv_exporter import write_csv
+from stc_swc.export.ndjson_exporter import write_ndjson
 
 st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
 st.title("🛡️ STC for SWC — Converter")
