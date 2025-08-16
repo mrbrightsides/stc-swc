@@ -68,13 +68,40 @@ if st.button("▶️ Konversi", use_container_width=True):
     tmp_path = out_dir / "_tmp_report.json"
     tmp_path.write_bytes(report_file.read())
 
+    # --- ambil nama file utk default contract name
+    contract_guess = Path(report_file.name).stem.split(".")[0]
+
+    # --- ambil git commit hash otomatis
+    def get_commit_hash():
+        try:
+            import subprocess
+            return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+        except:
+            return ""
+
+    commit_hash = get_commit_hash()
+
+    # --- parsing file JSON
     if tool == "mythril":
         raw_findings = parse_mythril(str(tmp_path))
     else:
         raw_findings = parse_slither(str(tmp_path))
 
-    rows = to_stc_schema_batch(raw_findings, tool=tool, timestamp_iso=timestamp_now or None)
+    # --- isi metadata ke semua temuan
+    for f in raw_findings:
+        f["contract"] = f.get("contract") or contract_guess
+        f["network"] = f.get("network") or "ethereum"
+        f["commit_hash"] = f.get("commit_hash") or commit_hash
+        f["timestamp"] = timestamp_now or datetime.utcnow().isoformat(timespec="seconds")
+        if "status" not in f:
+            f["status"] = "unresolved"
+        if "confidence" not in f or f["confidence"] in (None, ""):
+            f["confidence"] = "medium"
 
+    # --- konversi ke schema final
+    rows = to_stc_schema_batch(raw_findings, tool=tool)
+
+    # --- simpan hasil ke file
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     csv_path = out_dir / f"swc_findings_{ts}.csv"
     ndj_path = out_dir / f"swc_findings_{ts}.ndjson"
