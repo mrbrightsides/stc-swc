@@ -1,77 +1,77 @@
 #!/usr/bin/env python3
 """
-Robust SWC registry fetcher.
+SWC Registry fetcher via GitHub Tree + Blob API (tanpa raw.githubusercontent.com).
 
-- Coba tarik JSON per entry (jika ada).
-- Kalau 404, fallback tarik README.md dan parsing Title/Severity/Remediation.
-- Simpan cache ke: stc_swc/normalize/swc_registry_full.json
+- Ambil default_branch
+- GET /git/trees/{branch}?recursive=1 untuk list semua file
+- Ambil semua path entries/SWC-xxx/README.md
+- GET /git/blobs/{sha} untuk konten (base64) lalu parse Markdown
 
-Dependensi: requests
+Env opsional: GITHUB_TOKEN  (naikkan rate limit)
+
+Output:
+  stc_swc/normalize/swc_registry_full.json
 """
 from pathlib import Path
-import os, json, re, requests, sys
+import os, re, json, base64, requests, sys
 
 OWNER = "SmartContractSecurity"
 REPO  = "SWC-registry"
-BRANCHES = ["master", "main"]          # urutan coba
-ID_RANGE = range(100, 201)             # perluas kalau mau (mis. 100..300)
+API_REPO  = f"https://api.github.com/repos/{OWNER}/{REPO}"
+API_TREE  = API_REPO + "/git/trees/{branch}?recursive=1"
+API_BLOB  = API_REPO + "/git/blobs/{sha}"
+OUT_PATH  = Path("stc_swc/normalize/swc_registry_full.json")
 
-OUT_PATH = Path("stc_swc/normalize/swc_registry_full.json")
-
-def _session():
+def session():
     s = requests.Session()
     tok = os.getenv("GITHUB_TOKEN")
     if tok:
         s.headers["Authorization"] = f"Bearer {tok}"
     s.headers["User-Agent"] = "stc-swc-fetcher"
+    s.headers["Accept"] = "application/vnd.github+json"
     return s
 
-def _fetch_raw(s, url: str) -> str | None:
-    try:
-        r = s.get(url, timeout=25)
-        if r.status_code == 200:
-            return r.text
-    except Exception as e:
-        print(f"[warn] fetch failed: {url} ({e})", file=sys.stderr)
-    return None
+def get_default_branch(s):
+    r = s.get(API_REPO, timeout=30)
+    r.raise_for_status()
+    return r.json().get("default_branch", "master")
 
-def _parse_md(md: str) -> dict:
-    """
-    Parsers very simple SWC README.md structure.
+def get_tree(s, branch):
+    r = s.get(API_TREE.format(branch=branch), timeout=60)
+    r.raise_for_status()
+    return r.json().get("tree", [])
 
-    Heuristics:
-      - Title: first H1 or first line containing 'SWC-xxx — Title'
-      - Severity: line with 'Severity:' (case-insensitive)
-      - Remediation/Mitigation: section content under '## Remediation' or '## Mitigation'
-    """
-    title = ""
-    severity = ""
-    remediation = ""
+def get_blob_text(s, sha):
+    r = s.get(API_BLOB.format(sha=sha), timeout=30)
+    r.raise_for_status()
+    js = r.json()
+    if js.get("encoding") == "base64":
+        return base64.b64decode(js["content"]).decode("utf-8", "replace")
+    return js.get("content", "")
 
-    # Title: first H1
+def parse_md(md: str) -> dict:
+    # Title
     m = re.search(r"^#\s*(.+)$", md, flags=re.MULTILINE)
+    title = ""
     if m:
-        # often like: "SWC-103 — Floating Pragma"
         title = m.group(1).strip()
-        # normalize: drop "SWC-xxx — "
         title = re.sub(r"^SWC-\d+\s*[-–—]\s*", "", title).strip()
 
-    # Severity: "**Severity:** Medium" or "Severity: Medium"
+    # Severity
     m = re.search(r"(?i)^\**\s*Severity\s*:\s*([A-Za-z]+)\s*$", md, flags=re.MULTILINE)
-    if m:
-        severity = m.group(1).strip().lower()
+    severity = m.group(1).strip().lower() if m else ""
 
-    # Remediation/Mitigation section: from header to next '##'
+    # Remediation/Mitigation section
+    remediation = ""
     sec = None
     for header in [r"(?i)^##\s*Remediation\s*$", r"(?i)^##\s*Mitigation\s*$"]:
         m = re.search(header, md, flags=re.MULTILINE)
         if m:
             start = m.end()
-            m2 = re.search(r"(?m)^##\s+", md[start:])  # next section
+            m2 = re.search(r"(?m)^##\s+", md[start:])
             sec = md[start:] if not m2 else md[start:start+m2.start()]
             break
     if sec:
-        # compress whitespace; keep bullets
         lines = [ln.strip() for ln in sec.strip().splitlines() if ln.strip()]
         remediation = " ".join(lines)
 
@@ -83,63 +83,50 @@ def _parse_md(md: str) -> dict:
 
 def fetch_all():
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    s = _session()
+    s = session()
+
+    # 1) default branch
+    branch = get_default_branch(s)
+    print(f"[info] default_branch: {branch}", file=sys.stderr)
+
+    # 2) list all files via tree
+    tree = get_tree(s, branch)
+    # ambil semua README.md di entries/SWC-xxx/
+    targets = [t for t in tree
+               if t.get("type") == "blob"
+               and re.match(r"^entries/SWC-\d{3}/README\.md$", t.get("path",""))]
+
+    print(f"[info] found {len(targets)} README.md entries", file=sys.stderr)
+
     entries = {}
-    fetched = 0
+    for i, t in enumerate(targets, 1):
+        path = t["path"]  # entries/SWC-103/README.md
+        m = re.search(r"SWC-(\d{3})", path)
+        if not m:
+            continue
+        swc_num = m.group(1)
 
-    for swc_id in ID_RANGE:
-        name = f"SWC-{swc_id}"
-        data = None
+        # 3) ambil konten blob
+        try:
+            md = get_blob_text(s, t["sha"])
+        except Exception as e:
+            print(f"[warn] blob fetch failed {path}: {e}", file=sys.stderr)
+            continue
 
-        # 1) coba JSON (kalau suatu saat tersedia)
-        for br in BRANCHES:
-            url_json = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/{br}/entries/{name}/{name}.json"
-            txt = _fetch_raw(s, url_json)
-            if txt:
-                try:
-                    jj = json.loads(txt)
-                    data = {
-                        "id": str(jj.get("SWC-ID") or swc_id),
-                        "title": jj.get("Title"),
-                        "severity": (jj.get("Severity") or "").lower() or None,
-                        "description": jj.get("Description"),
-                        "remediation": jj.get("Remediation") or jj.get("Mitigation"),
-                        "relationships": jj.get("Relationships"),
-                        "cwe": jj.get("CWE"),
-                        "references": jj.get("References"),
-                    }
-                    break
-                except Exception:
-                    pass  # lanjut fallback ke README.md
+        meta = parse_md(md)
+        entries[swc_num] = {
+            "id": swc_num,
+            "title": meta["title"],
+            "severity": meta["severity"],
+            "description": None,
+            "remediation": meta["remediation"],
+            "relationships": None,
+            "cwe": None,
+            "references": None,
+        }
 
-        # 2) fallback ke README.md
-        if not data:
-            md = None
-            for br in BRANCHES:
-                url_md = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/{br}/entries/{name}/README.md"
-                md = _fetch_raw(s, url_md)
-                if md:
-                    break
-            if not md:
-                continue  # entry tidak ada → lanjut
-
-            meta = _parse_md(md)
-            data = {
-                "id": str(swc_id),
-                "title": meta["title"],
-                "severity": meta["severity"],
-                "description": None,
-                "remediation": meta["remediation"],
-                "relationships": None,
-                "cwe": None,
-                "references": None,
-            }
-
-        key = str(data["id"]).replace("SWC-", "")
-        entries[key] = data
-        fetched += 1
-        if fetched % 10 == 0:
-            print(f"[info] fetched {fetched} entries...", file=sys.stderr)
+        if i % 20 == 0:
+            print(f"[info] processed {i}/{len(targets)}", file=sys.stderr)
 
     OUT_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"✅ wrote {OUT_PATH} with {len(entries)} entries")
