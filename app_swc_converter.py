@@ -27,22 +27,39 @@ st.markdown(
     "Konversi output **Mythril/Slither (JSON)** menjadi **swc_findings.csv** & **swc_findings.ndjson** yang selaras STC Analytics."
 )
 
-col = st.columns([1, 1])  # hanya 2 kolom sekarang
+col = st.columns(3)
 with col[0]:
     tool = st.selectbox("Pilih tool", ["mythril", "slither"], index=0)
 with col[1]:
+    out_dir = Path(st.text_input("Output folder", "outputs"))
+with col[2]:
     timestamp_now = st.text_input("Timestamp (opsional, ISO)", "", placeholder="2025-08-10T13:00:00")
 
-out_dir = Path("outputs")
 out_dir.mkdir(parents=True, exist_ok=True)
 
 report_file = st.file_uploader("Upload output JSON (Mythril/Slither)", type=["json"], accept_multiple_files=False)
+
+if st.session_state.get("converted"):
+    st.success("Berhasil diexport!")
+
+    csv_path = Path(st.session_state["csv_path"])
+    ndj_path = Path(st.session_state["ndj_path"])
+    rows = st.session_state["rows"]
+
+    with open(csv_path, "rb") as f:
+        st.download_button("📥 Download CSV", f, file_name=csv_path.name, mime="text/csv", key="csv_dl")
+
+    with open(ndj_path, "rb") as f:
+        st.download_button("📥 Download NDJSON", f, file_name=ndj_path.name, mime="application/x-ndjson", key="ndjson_dl")
+
+    st.dataframe(pd.DataFrame(rows))
 
 if st.button("▶️ Konversi", use_container_width=True):
     if not report_file:
         st.error("Upload report JSON dulu ya.")
         st.stop()
 
+    # Validasi ISO format (YYYY-MM-DDTHH:MM:SS)
     if timestamp_now:
         try:
             datetime.fromisoformat(timestamp_now)
@@ -50,6 +67,7 @@ if st.button("▶️ Konversi", use_container_width=True):
             st.error("Format timestamp harus YYYY-MM-DDTHH:MM:SS")
             st.stop()
 
+    # Simpan sementara lalu parse
     tmp_path = out_dir / "_tmp_report.json"
     tmp_path.write_bytes(report_file.read())
 
@@ -69,11 +87,10 @@ if st.button("▶️ Konversi", use_container_width=True):
 
     st.success("Berhasil diexport!")
 
-    with open(csv_path, "rb") as f:
-        st.download_button("📥 Download CSV", f, file_name=csv_path.name, mime="text/csv")
+    # ✅ Tombol download
+    st.session_state["converted"] = True
+    st.session_state["csv_path"] = str(csv_path)
+    st.session_state["ndj_path"] = str(ndj_path)
+    st.session_state["rows"] = rows
 
-    with open(ndj_path, "rb") as f:
-        st.download_button("📥 Download NDJSON", f, file_name=ndj_path.name, mime="application/x-ndjson")
-
-    if rows:
-        st.dataframe(pd.DataFrame(rows))
+    st.rerun()
