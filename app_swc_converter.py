@@ -98,6 +98,55 @@ if st.button("▶️ Konversi", use_container_width=True):
         if "confidence" not in f or f["confidence"] in (None, ""):
             f["confidence"] = "medium"
 
+    # -------------------------------
+    # Lengkapi metadata per temuan
+    # -------------------------------
+    
+    # Ambil nama kontrak dari nama file (mis. SmartToken.slither.json → SmartToken)
+    contract_guess = Path(report_file.name).stem.split(".")[0]
+    
+    # Ambil git commit hash (jika tersedia)
+    def get_commit_hash():
+        try:
+            import subprocess
+            return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+        except:
+            return ""
+    
+    commit_hash = get_commit_hash()
+    
+    # SWC Mapping contoh minimal
+    SWC_MAPPING = {
+        "reentrancy": "SWC-107",
+        "low-level-calls": "SWC-104",
+        "solc-version": "SWC-103",
+        # tambahkan sesuai tool
+    }
+    
+    for f in raw_findings:
+        f["contract"] = f.get("contract") or contract_guess
+        f["network"] = f.get("network") or "ethereum"
+        f["commit_hash"] = f.get("commit_hash") or commit_hash
+        f["timestamp"] = f.get("timestamp") or timestamp_now or datetime.utcnow().isoformat(timespec="seconds")
+    
+        if not f.get("status"):
+            f["status"] = "unresolved"
+    
+        if not f.get("confidence") or f["confidence"] in ("", None):
+            f["confidence"] = 0.5  # default confidence
+    
+        if not f.get("line_start") and f.get("line"):
+            f["line_start"] = f["line"]
+        if not f.get("line_end"):
+            f["line_end"] = f.get("line_start")
+    
+        # isi swc_id dari judul jika cocok
+        title_lc = (f.get("title") or "").lower()
+        for k, v in SWC_MAPPING.items():
+            if k in title_lc:
+                f["swc_id"] = v
+                break
+
     # --- konversi ke schema final
     rows = to_stc_schema_batch(raw_findings, tool=tool)
 
