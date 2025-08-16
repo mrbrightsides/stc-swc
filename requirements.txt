@@ -1,3 +1,4 @@
 streamlit
 pandas
 python-dateutil
+requests>=2.31.0
