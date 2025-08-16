@@ -1,0 +1,72 @@
+{
+  "103": {
+    "id": "103",
+    "title": "Floating Pragma",
+    "severity": "medium",
+    "description": null,
+    "remediation": "Gunakan compiler version spesifik (mis. ^0.8.20 → 0.8.20) agar hasil compile konsisten.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "104": {
+    "id": "104",
+    "title": "Unchecked Call Return Value / Low-level Calls",
+    "severity": "low",
+    "description": null,
+    "remediation": "Hindari low-level call kecuali perlu. Periksa nilai balikan (success) dan revert jika gagal.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "107": {
+    "id": "107",
+    "title": "Reentrancy",
+    "severity": "high",
+    "description": null,
+    "remediation": "Gunakan checks-effects-interactions atau reentrancy guard (mutex) sebelum transfer/low-level call.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "110": {
+    "id": "110",
+    "title": "Assert Violation",
+    "severity": "medium",
+    "description": null,
+    "remediation": "Gunakan require untuk validasi input; reservasi assert untuk invariant internal yang tidak dapat dipulihkan.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "112": {
+    "id": "112",
+    "title": "Delegatecall to Untrusted Callee",
+    "severity": "high",
+    "description": null,
+    "remediation": "Jangan delegatecall ke alamat yang tidak terverifikasi; whitelist & verifikasi bytecode.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "113": {
+    "id": "113",
+    "title": "DoS with Failed Call / Unchecked Send",
+    "severity": "medium",
+    "description": null,
+    "remediation": "Jangan gunakan .send/.transfer untuk kontrol aliran kritikal; tangani kegagalan dan/atau gunakan pull payment.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  },
+  "115": {
+    "id": "115",
+    "title": "tx.origin Authentication",
+    "severity": "high",
+    "description": null,
+    "remediation": "Jangan gunakan tx.origin untuk autentikasi; gunakan msg.sender dan mekanisme otorisasi yang benar.",
+    "relationships": null,
+    "cwe": null,
+    "references": null
+  }
+}
