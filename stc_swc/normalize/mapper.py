@@ -32,10 +32,9 @@ def to_stc_schema(raw: dict, tool: str, timestamp_iso: str | None = None) -> dic
 
     meta = get_swc_meta(raw.get("swc_id"))
     if meta:
-        if not raw.get("title"):
-            raw["title"] = meta.get("title")
-        if not raw.get("severity"):
-            raw["severity"] = meta.get("severity")
+        raw["title"]       = raw.get("title")       or meta.get("title")
+        raw["severity"]    = raw.get("severity")    or (meta.get("severity") or "").lower()
+        raw["remediation"] = raw.get("remediation") or meta.get("remediation") or ""
 
     ts = timestamp_iso
     if not ts:
