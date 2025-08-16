@@ -14,8 +14,8 @@ for p in {str(ROOT), str(ROOT / "stc_swc")}:
         sys.path.insert(0, p)
 # -------------------------------------------------------------------------------
 
-from stc_swc.extract.mythril import parse_report as parse_mythril
-from stc_swc.extract.slither import parse_report as parse_slither
+from stc_swc.extract.mythril import parse_mythril
+from stc_swc.extract.slither import parse_slither
 from stc_swc.normalize.mapper import to_stc_schema_batch
 from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
