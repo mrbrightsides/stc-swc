@@ -22,6 +22,41 @@ from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
 from stc_swc.normalize.swc_registry import get_swc_meta
 
+st.markdown("""
+    <style>
+    /* === DARK MODE SIDEBAR === */
+    section[data-testid="stSidebar"] {
+        background-color: #111111;
+        padding: 1.5rem;
+        color: white;
+        border-right: 1px solid #333;
+    }
+
+    /* === Box/frame styling like STC Analytics === */
+    section[data-testid="stSidebar"] > div {
+        background-color: #1a1a1a;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #333333;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    /* === Sidebar text and links === */
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+
+    section[data-testid="stSidebar"] a {
+        color: #1abfff !important;
+        text-decoration: none;
+    }
+
+    section[data-testid="stSidebar"] a:hover {
+        text-decoration: underline;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     st.sidebar.markdown("📘 **About**")
     st.sidebar.markdown("""
