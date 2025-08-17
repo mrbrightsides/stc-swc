@@ -43,6 +43,13 @@ out_dir.mkdir(parents=True, exist_ok=True)
 
 report_file = st.file_uploader("Upload output JSON (Mythril/Slither)", type=["json"], accept_multiple_files=False)
 
+# --- reset UI kalau user hapus file upload ---
+if "converted" in st.session_state and report_file is None:
+    st.session_state.pop("converted")
+    st.session_state.pop("csv_path", None)
+    st.session_state.pop("ndj_path", None)
+    st.session_state.pop("rows", None)
+
 if st.session_state.get("converted"):
     st.success("Berhasil diexport!")
 
