@@ -30,10 +30,6 @@ st.markdown(
 )
 
 with st.sidebar:
-    if st.button("♻️ Refresh kolom (clear cache)"):
-        get_eth_idr_rate_cached.clear()
-        st.success("kolom akan di-refresh pada request berikutnya.")
-
     st.sidebar.markdown("📘 **About**")
     st.sidebar.markdown("""
     STC GasVision memantau biaya gas transaksi di berbagai testnet (Sepolia, Goerli,
@@ -62,7 +58,7 @@ col1, col2 = st.columns([1, 4])
 with col1:
     st.image(LOGO_URL, width=60)
 with col2:
-    st.markdown("## STC GasVision")
+    st.markdown("## STC for SWC")
 
 col = st.columns([1, 1])  # hanya 2 kolom sekarang
 with col[0]:
