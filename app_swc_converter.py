@@ -22,13 +22,6 @@ from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
 from stc_swc.normalize.swc_registry import get_swc_meta
 
-st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
-st.title("🛡️ STC for SWC — Converter")
-
-st.markdown(
-    "Konversi output **Mythril/Slither (JSON)** menjadi **swc_findings.csv** & **swc_findings.ndjson** yang selaras STC Analytics."
-)
-
 with st.sidebar:
     st.sidebar.markdown("📘 **About**")
     st.sidebar.markdown("""
@@ -59,6 +52,13 @@ with col1:
     st.image(LOGO_URL, width=60)
 with col2:
     st.markdown("## STC for SWC")
+
+st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
+st.title("🛡️ STC for SWC — Converter")
+
+st.markdown(
+    "Konversi output **Mythril/Slither (JSON)** menjadi **swc_findings.csv** & **swc_findings.ndjson** yang selaras STC Analytics."
+)
 
 col = st.columns([1, 1])  # hanya 2 kolom sekarang
 with col[0]:
