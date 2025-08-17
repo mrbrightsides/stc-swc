@@ -22,6 +22,12 @@ from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
 from stc_swc.normalize.swc_registry import get_swc_meta
 
+st.set_page_config(
+    page_title="STC Converter",
+    page_icon="🛠️",
+    layout="wide"
+)
+
 st.markdown("""
 <style>
 :root { --accent:#20c997; --accent2:#7c4dff; }
@@ -101,8 +107,8 @@ with col1:
 with col2:
     st.markdown("## STC for SWC")
 
-st.set_page_config(page_title="STC for SWC — Converter", layout="wide")
-st.title("🛡️ STC for SWC — Converter")
+st.set_page_config(page_title="STC Converter", layout="wide")
+st.title("🛡️ STC for SWC (Smartcontract Weakness Classification)")
 
 st.markdown(
     "Konversi output **Mythril/Slither (JSON)** menjadi **swc_findings.csv** & **swc_findings.ndjson** yang selaras STC Analytics."
