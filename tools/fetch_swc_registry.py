@@ -100,7 +100,7 @@ def fetch_all():
 
     entries = {}
     for i, t in enumerate(targets, 1):
-        path = t["path"]                                  # entries/SWC-103/README.md
+        path = t["path"]
         m = re.search(r"SWC-(\d{3})", path)
         if not m: continue
         swc_num = m.group(1)
