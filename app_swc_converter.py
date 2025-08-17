@@ -73,18 +73,18 @@ div[data-testid="stMetric"]{
 with st.sidebar:
     st.sidebar.markdown("📘 **About**")
     st.sidebar.markdown("""
-    STC GasVision memantau biaya gas transaksi di berbagai testnet (Sepolia, Goerli,
-    Polygon Mumbai, Arbitrum Sepolia) dan mengonversinya ke Rupiah.
+    STC for SWC Converter memudahkan konversi hasil analisis *static analyzer* seperti **Mythril** dan **Slither** ke format standar STC Analytics.
 
-    **Sumber data**
-    - 🔌 Realtime data jaringan: **Infura RPC**
-    - 💱 Kurs ETH → IDR via **Infura**, dengan fallback ke provider lain
-    - 🧠 Kurs dicache ±10 menit
-    - 📥 Export CSV untuk analisis
-
-    🧾 Upload hasil CSV ke [**STC Analytics**](https://stc-analytics.streamlit.app)
-    untuk eksplorasi lanjutan biaya transaksi.
-
+    **Didukung format:**
+    - 🐍 JSON dari **Slither** (`--json`)
+    - 🧠 JSON dari **Mythril**
+    
+    **Output:**
+    - 📄 `swc_findings.csv`
+    - 🧾 `swc_findings.ndjson`
+    
+    Siap untuk diunggah ke [**STC Analytics**](https://stc-analytics.streamlit.app) guna eksplorasi lebih lanjut.
+    
     ---
     #### 🙌 Dukungan & kontributor
     - ⭐ **Star / Fork**: [GitHub repo](https://github.com/mrbrightsides/stc-swc/tree/main)
