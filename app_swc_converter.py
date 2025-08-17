@@ -4,9 +4,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import streamlit as st
 from stc_swc.normalize.swc_registry import get_swc_meta
-# DEBUG kecil
-test_meta = get_swc_meta("SWC-103") or get_swc_meta("103")
-st.caption(f"SWC registry sample (103): {bool(test_meta)}")
 
 # --- bootstrap local package path (supports running from subfolders like main/) ---
 from pathlib import Path
