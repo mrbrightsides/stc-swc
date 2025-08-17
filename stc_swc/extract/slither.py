@@ -2,51 +2,55 @@ import json
 from pathlib import Path
 
 def parse_report(path: str):
-    """
-    Baca JSON hasil Slither (format --json) dan kembalikan list temuan raw standar internal.
-    """
     p = Path(path)
     data = json.loads(p.read_text(encoding="utf-8"))
 
-    results = data.get("results", {})
-    detectors = results.get("detectors", [])
+    detectors = data.get("results", {}).get("detectors", [])
     findings = []
 
     for d in detectors:
         title = d.get("check") or d.get("title") or ""
         desc = d.get("description") or ""
-        impact = (d.get("impact") or "").lower()  # severity
-        elements = d.get("elements", [])
+        impact = (d.get("impact") or "").lower()
+        conf = d.get("confidence", "").lower()
+        conf_map = {"high": 0.9, "medium": 0.5, "low": 0.2}
+        confidence = conf_map.get(conf, 0.5)
 
-        file_path = None
-        line_no = None
+        file_path = ""
+        line_start = 0
+        line_end = 0
         contract = ""
         func = ""
 
-        for el in elements:
-            sm = el.get("source_mapping") or {}
-            file_path = sm.get("filename_absolute") or sm.get("filename_relative") or file_path
-            line_no = sm.get("line") or line_no
-            # Slither kadang punya tipe & function name
-            if el.get("type") == "function":
-                func = el.get("name") or func
+        elements = d.get("elements", [])
+        if elements:
+            sm = elements[0].get("source_mapping", {})
+            file_path = sm.get("filename_short") or sm.get("filename_relative") or ""
 
-        # Slither tidak menyediakan SWC-ID langsung → biarkan None (akan di-enrich nanti jika perlu)
+            lines = sm.get("lines", [])
+            if isinstance(lines, list) and lines:
+                line_start = min(lines)
+                line_end = max(lines)
+
+            parent = elements[0].get("type_specific_fields", {}).get("parent", {})
+            contract = parent.get("name", "")
+            func = elements[0].get("name", "") or ""
+
         findings.append({
-            "swc_id": None,
+            "swc_id": None,  # akan diisi belakangan via mapping
             "title": title,
             "description": desc,
             "severity": impact,
+            "confidence": confidence,
+            "status": "unresolved",
             "contract": contract,
             "function": func,
             "file": file_path,
-            "line": int(line_no) if isinstance(line_no, int) or (isinstance(line_no, str) and str(line_no).isdigit()) else None,
-            "network": "ethereum",
-            "status": "unresolved",
-            "confidence": "medium",
+            "line_start": line_start,
+            "line_end": line_end,
             "remediation": "",
             "commit_hash": "",
+            "network": "ethereum",
         })
-
 
     return findings
