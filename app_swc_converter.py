@@ -118,7 +118,7 @@ col = st.columns([1, 1])  # hanya 2 kolom sekarang
 with col[0]:
     tool = st.selectbox("Pilih tool", ["mythril", "slither"], index=0)
 with col[1]:
-    timestamp_now = st.text_input("Timestamp (opsional, ISO)", "", placeholder="2025-08-10T13:00:00")
+    timestamp_now = st.text_input("Timestamp (opsional, ISO)", "", placeholder="YYY-MM-DDTHH:MM:SS")
 
 out_dir = Path("outputs")
 out_dir.mkdir(parents=True, exist_ok=True)
