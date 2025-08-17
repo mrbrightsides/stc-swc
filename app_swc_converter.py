@@ -23,38 +23,51 @@ from stc_swc.export.ndjson_exporter import write_ndjson
 from stc_swc.normalize.swc_registry import get_swc_meta
 
 st.markdown("""
-    <style>
-    /* === DARK MODE SIDEBAR === */
-    section[data-testid="stSidebar"] {
-        background-color: #111111;
-        padding: 1.5rem;
-        color: white;
-        border-right: 1px solid #333;
-    }
+<style>
+:root { --accent:#20c997; --accent2:#7c4dff; }
+.block-container { padding-top: 1rem; }
 
-    /* === Box/frame styling like STC Analytics === */
-    section[data-testid="stSidebar"] > div {
-        background-color: #1a1a1a;
-        padding: 16px;
-        border-radius: 8px;
-        border: 1px solid #333333;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
+/* === Sidebar wrapper === */
+section[data-testid="stSidebar"] > div {
+  background-color: #1a1a1a;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #333333;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
 
-    /* === Sidebar text and links === */
-    section[data-testid="stSidebar"] * {
-        color: white !important;
-    }
+/* Sidebar expander box */
+section[data-testid="stSidebar"] .st-expander {
+  border:1px solid #313131;
+  border-radius:12px;
+}
 
-    section[data-testid="stSidebar"] a {
-        color: #1abfff !important;
-        text-decoration: none;
-    }
+/* Metric styling */
+div[data-testid="stMetric"]{
+  background: linear-gradient(135deg, rgba(32,201,151,.08), rgba(124,77,255,.06));
+  border: 1px solid rgba(128,128,128,.15);
+  padding: 12px;
+  border-radius: 12px;
+}
 
-    section[data-testid="stSidebar"] a:hover {
-        text-decoration: underline;
-    }
-    </style>
+/* Buttons */
+.stButton>button, .stDownloadButton>button {
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.15);
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] { gap: 6px; }
+.stTabs [data-baseweb="tab"] {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 6px 12px;
+}
+
+/* Header */
+[data-testid="stHeader"] { background: transparent; }
+</style>
 """, unsafe_allow_html=True)
 
 with st.sidebar:
