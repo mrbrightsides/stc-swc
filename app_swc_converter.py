@@ -82,7 +82,7 @@ with st.sidebar:
     STC for SWC Converter memudahkan konversi hasil analisis *static analyzer* seperti **Mythril** dan **Slither** ke format standar STC Analytics.
 
     **Didukung format:**
-    - 🐍 JSON dari **Slither** (`--json`)
+    - 🐍 JSON dari **Slither**
     - 🧠 JSON dari **Mythril**
     
     **Output:**
