@@ -105,7 +105,7 @@ col1, col2 = st.columns([1, 4])
 with col1:
     st.image(LOGO_URL, width=60)
 with col2:
-    st.markdown("## STC for SWC")
+    st.markdown("## STC Converter")
 
 st.set_page_config(page_title="STC Converter", layout="wide")
 st.title("🛡️ STC for SWC (Smartcontract Weakness Classification)")
