@@ -54,7 +54,7 @@ div[data-testid="stMetric"]{
 with st.sidebar:
     st.sidebar.markdown("📘 **About**")
     st.sidebar.markdown("""
-    STC for SWC Converter memudahkan konversi hasil analisis *static analyzer* seperti **Mythril** dan **Slither** ke format standar STC Analytics.
+    STC for SWC Converter memudahkan konversi hasil analisis keamanan Smart Contract Blockchain, yang menggunakan tools seperti **Mythril** dan **Slither** dan menghasilkan *static analyzer*,  ke dalam format yang lebih mudah terbaca untuk kepentingan analisis.
 
     **Didukung format:**
     - 🐍 JSON dari **Slither**
