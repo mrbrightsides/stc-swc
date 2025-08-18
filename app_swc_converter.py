@@ -86,7 +86,7 @@ st.set_page_config(page_title="STC Converter", layout="wide")
 st.title("🛡️ STC for SWC (Smartcontract Weakness Classification)")
 
 st.markdown(
-    "Konversi output **Mythril/Slither (JSON)** menjadi **swc_findings.csv** & **swc_findings.ndjson** yang selaras STC Analytics."
+    "STC for SWC Converter memudahkan konversi hasil analisis keamanan Smart Contract Blockchain, yang menggunakan tools seperti **Mythril** dan **Slither** dan menghasilkan *static analyzer*,  ke dalam format yang lebih mudah terbaca untuk kepentingan analisis."
 )
 
 col = st.columns([1, 1])  # hanya 2 kolom sekarang
