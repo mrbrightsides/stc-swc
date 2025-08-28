@@ -109,6 +109,8 @@ Hasil konversi siap dipakai langsung di STC Analytics dengan format standar:
 
 - 📊 Visualisasi dasar (severity pie chart) langsung di UI converter.
 
+---
+
 ## 📜 Lisensi
 
 MIT License © ELPEEF Dev Team
