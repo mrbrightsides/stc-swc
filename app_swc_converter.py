@@ -22,6 +22,9 @@ from stc_swc.export.csv_exporter import write_csv
 from stc_swc.export.ndjson_exporter import write_ndjson
 from stc_swc.normalize.swc_registry import get_swc_meta
 
+if st.query_params.get("ping") == "1":
+    st.write("ok"); st.stop()
+
 st.set_page_config(
     page_title="STC Converter",
     page_icon="🛠️",
