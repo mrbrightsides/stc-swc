@@ -56,7 +56,7 @@ python -m stc_swc.cli --tool mythril --input outputs/mythril.json --out-dir outp
 
 ---
 
-## 🪄 Workflow STC Ecosystem
+## 🪄 Workflow STC Converter
 
 ```mermaid
 flowchart TD
