@@ -29,7 +29,7 @@ STC Converter adalah modul untuk mengubah hasil audit keamanan Smart Contract (v
 
 ---
 
-## Quick Start
+## 📦 Quick Start
 
 ```bash
 pip install -r requirements.txt
@@ -56,7 +56,7 @@ python -m stc_swc.cli --tool mythril --input outputs/mythril.json --out-dir outp
 
 ---
 
-## 🔗 Workflow STC Ecosystem
+## 🪄 Workflow STC Ecosystem
 
 ```mermaid
 flowchart TD
