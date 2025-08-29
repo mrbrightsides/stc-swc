@@ -71,6 +71,89 @@ flowchart TD
     Converter --> Analytics
 ```
 
+## Ecosystem Overview
+```mermaid
+graph TD
+  %% ==== Sources ====
+  subgraph Sources
+    TX["On-chain Tx / RPC"]
+    AUD1["Mythril Output (.json)"]
+    AUD2["Slither Output (.json)"]
+    APP["Operational CSV/XLSX\n(booking, payment, dll)"]
+  end
+
+  %% ==== Processing / ETL ====
+  subgraph Processing
+    CONV["STC Converter\n(CSV / NDJSON)"]
+    ETL["ETL / Cleaning\n(pandas)"]
+    CACHE["Light Cache\n(app / viz)"]
+  end
+
+  %% ==== Storage ====
+  subgraph Storage
+    DL["Data Lake\n(NDJSON / CSV)"]
+    LOG["Logs / Metrics"]
+  end
+
+  %% ==== Apps ====
+  subgraph Apps
+    INS["STC Insight\n(EDA Streamlit)"]
+    ANL["STC Analytics\n(Dashboard)"]
+    GAS["STC GasVision\n(Gas Tracker)"]
+  end
+
+  %% ==== Monitoring ====
+  subgraph Ops
+    CI["CI/CD\n(GitHub Actions)"]
+    MON["Uptime / Monitoring"]
+  end
+
+  %% Flows
+  AUD1 --> CONV
+  AUD2 --> CONV
+  APP --> ETL
+  TX --> GAS
+
+  CONV --> DL
+  ETL --> DL
+
+  DL --> INS
+  DL --> ANL
+  GAS --> LOG
+  INS --> CACHE
+  ANL --> CACHE
+
+  CI --- INS
+  CI --- ANL
+  CI --- GAS
+  MON --- INS
+  MON --- ANL
+  MON --- GAS
+```
+
+## Security → Converter → Analytics
+```mermaid
+flowchart LR
+  A["Mythril Output (.json)"] --> C["STC Converter\n(CSV / NDJSON)"]
+  B["Slither Output (.json)"] --> C
+  C --> D["STC Analytics\n(Dashboard)"]
+  C --> E["STC Insight\n(EDA)"]
+  D --> F["Export Laporan / CSV"]
+  E --> G["Explorasi / Chart"]
+```
+
+## Data Ingestion & Viz (operasional CSV → Insight/Analytics)
+```mermaid
+flowchart LR
+  OP["Operational CSV/XLSX"] --> CLEAN["Cleaning & Normalize"]
+  CLEAN --> MAP["Mapping Kolom\n(x, y, category, date)"]
+  MAP --> DL["Data Lake\n(NDJSON/CSV)"]
+  DL --> INS["STC Insight\n(EDA Streamlit)"]
+  DL --> ANL["STC Analytics\n(Dashboard)"]
+  INS --> OUT1["Export PNG/CSV"]
+  ANL --> OUT2["Export CSV / Report"]
+```
+
 ---
 
 ## 🔗 Integrasi STC Ecosystem
