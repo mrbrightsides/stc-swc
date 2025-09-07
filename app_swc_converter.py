@@ -71,7 +71,7 @@ with st.sidebar:
     
     ---
     #### 🙌 Dukungan & kontributor
-    - ⭐ **Star / Fork**: [GitHub repo](https://github.com/mrbrightsides/stc-swc/tree/main)
+    - ⭐ **Star / Fork**: [GitHub repo](https://github.com/mrbrightsides/stc-swc)
     - Built with 💙 by [ELPEEF](https://elpeef.com)
 
     Versi UI: v1.0 • Streamlit • Theme Dark
