@@ -70,9 +70,27 @@ with st.sidebar:
     Siap untuk diunggah ke [**STC Analytics**](https://stc-analytics.streamlit.app) guna eksplorasi lebih lanjut.
     
     ---
+    ### 🧩 RANTAI Ecosystem
+    1. [STC Analytics](https://stc-analytics.streamlit.app/)
+    2. [STC GasVision](https://stc-gasvision.streamlit.app/)
+    3. [STC Bench](https://stc-bench.streamlit.app/)
+    4. [STC Insight](https://stc-insight.streamlit.app/)
+    5. [STC Plugin](https://smartourism.elpeef.com/)
+    6. [SmartFaith](https://smartfaith.streamlit.app/)
+    7. [Learn3](https://learn3.streamlit.app/)
+    8. [Nexus](https://rantai-nexus.streamlit.app/)
+    9. [DataHub](https://stc-data.streamlit.app/)
+    10. [BlockPedia](https://blockpedia.streamlit.app/)   
+
+    ---
     #### 🙌 Dukungan & kontributor
     - ⭐ **Star / Fork**: [GitHub repo](https://github.com/mrbrightsides/stc-swc)
-    - Built with 💙 by [ELPEEF](https://elpeef.com)
+    - Built with 💙 by [Khudri](https://s.id/khudri)
+    - Dukung pengembangan proyek ini melalui: 
+      [💖 GitHub Sponsors](https://github.com/sponsors/mrbrightsides) • 
+      [☕ Ko-fi](https://ko-fi.com/khudri) • 
+      [💵 PayPal](https://www.paypal.com/paypalme/akhmadkhudri) • 
+      [🍵 Trakteer](https://trakteer.id/akhmad_khudri)
 
     Versi UI: v1.0 • Streamlit • Theme Dark
     """)
